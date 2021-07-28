@@ -1,13 +1,14 @@
 
 
-NAME=tetris
+NAME=mario
 
 DEPDIR=.dep
 OBJDIR=.obj
 
 SRC = main.c\
-draw.c\
-game.c
+core.c\
+schema.c\
+file.c
 MSRC = sokol_unit.m
 ALL_SRC= $(MSRC) $(SRC)
 
@@ -15,7 +16,7 @@ OBJ1=$(ALL_SRC:.c=.o)
 OBJ2=$(OBJ1:.m=.o)
 OBJ=$(addprefix $(OBJDIR)/,$(OBJ2))
 
-CFLAGS += -Wall -Wextra -Werror -pedantic -Wno-sizeof-array-argument -Wno-unknown-warning-option -Wno-sizeof-pointer-div -Wno-unneeded-internal-declaration -g
+CFLAGS += -Wall -Wextra -Werror -pedantic -Wno-sizeof-array-argument -Wno-unknown-warning-option -Wno-sizeof-pointer-div -Wno-unneeded-internal-declaration -Wno-gnu-zero-variadic-macro-arguments -g
 MFLAGS += -g
 
 CC = clang

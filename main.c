@@ -23,7 +23,7 @@ sapp_desc	sokol_main(int argc, char* argv[]) {
 	stm_setup();
 	state.arguments_count = argc;
 	state.arguments = argv;
-	init_game (&state.game);
+	init_core (&state.core);
 	return (sapp_desc) {
 		.width = 800,
 		.height = 600,
@@ -54,7 +54,7 @@ void	init_state (struct state *state) {
 	state->framebuffer.data = malloc (state->framebuffer.size);
 
 	memset (state->framebuffer.data, 255, state->framebuffer.size);
-	memset (&state->input, 0, sizeof state->input);
+	// memset (&state->input, 0, sizeof state->input);
 
 	state->img = sg_make_image(&(sg_image_desc){
 								.width = state->framebuffer.width,
@@ -66,17 +66,13 @@ void	init_state (struct state *state) {
 }
 
 void	calculate_frame (struct state *state) {
-	int	need_redraw;
+	// int	need_redraw;
 
-	need_redraw = run_game (&state->game, &state->input);
-	memset (&state->input, 0, sizeof state->input);
+	// need_redraw = run_game (&state->game, &state->input);
+	// memset (&state->input, 0, sizeof state->input);
 
-	if (!state->game.is_play) {
-		init_game (&state->game);
-	}
-
-	if (need_redraw) {
-		draw_game (&state->framebuffer, &state->game);
+	if (1) {
+		// draw_game (&state->framebuffer, &state->game);
 
 		sg_update_image(state->img, &(sg_image_data) {
 							.subimage[0][0] = (sg_range) { .ptr = state->framebuffer.data, .size = state->framebuffer.size },
@@ -120,22 +116,8 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 	(void) state;
 	switch (event->type) {
 		case SAPP_EVENTTYPE_KEY_DOWN: {
-			if (event->key_code == SAPP_KEYCODE_LEFT) {
-				state->input.is_left = 1;
-			} else if (event->key_code == SAPP_KEYCODE_RIGHT) {
-				state->input.is_right = 1;
-			} else if (event->key_code == SAPP_KEYCODE_DOWN) {
-				state->input.is_sprint_down = 1;
-			} else if (event->key_code == SAPP_KEYCODE_SPACE) {
-				state->input.is_rotate_left = 1;
-			} else if (event->key_code == SAPP_KEYCODE_ENTER) {
-				state->input.is_rotate_right = 1;
-			}
 		} break ;
 		case SAPP_EVENTTYPE_KEY_UP: {
-			if (event->key_code == SAPP_KEYCODE_DOWN) {
-				state->input.is_sprint_up = 1;
-			}
 		}
 		case SAPP_EVENTTYPE_CHAR: {
 		} break ;

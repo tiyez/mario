@@ -3,7 +3,7 @@
 #define State_H
 
 #include "draw.h"
-#include "game.h"
+#include "core.h"
 
 struct state {
 	int		arguments_count;
@@ -13,8 +13,7 @@ struct state {
 	struct framebuffer	framebuffer;
 	sg_image			img;
 
-	struct input		input;
-	struct game			game;
+	struct core			core;
 };
 
 #endif /* State_H */
