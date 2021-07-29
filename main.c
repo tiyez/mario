@@ -12,6 +12,8 @@
 #include "state.h"
 #include "draw.h"
 
+#include "log.h"
+
 void	init_state (struct state *);
 void	calculate_frame (struct state *);
 void	cleanup (struct state *);
@@ -23,7 +25,10 @@ sapp_desc	sokol_main(int argc, char* argv[]) {
 	stm_setup();
 	state.arguments_count = argc;
 	state.arguments = argv;
-	init_core (&state.core);
+	if (!init_world (&state.world)) {
+		Error ("cannot initialize world state");
+		exit (1);
+	}
 	return (sapp_desc) {
 		.width = 800,
 		.height = 600,
@@ -70,6 +75,18 @@ void	calculate_frame (struct state *state) {
 
 	// need_redraw = run_game (&state->game, &state->input);
 	// memset (&state->input, 0, sizeof state->input);
+
+	struct tileset	*tileset = &state->world.tilesets[0];
+	struct frame	frame = {
+		.x = -20,
+		// .x = 0,
+		.y = -20,
+		// .y = 0,
+		.width = 50,
+		.height = 50,
+		.stride = tileset->stride,
+	};
+	draw_texture_scaled (&state->framebuffer, &frame, 8, tileset->data);
 
 	if (1) {
 		// draw_game (&state->framebuffer, &state->game);

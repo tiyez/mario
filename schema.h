@@ -2,7 +2,7 @@
 #ifndef Schema_H
 #define Schema_H
 
-#include "editor.h"
+#include "types.h"
 
 struct schema_entry {
 	enum { Schema_Type_tileset } type;

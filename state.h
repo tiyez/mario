@@ -3,7 +3,7 @@
 #define State_H
 
 #include "draw.h"
-#include "core.h"
+#include "world.h"
 
 struct state {
 	int		arguments_count;
@@ -13,7 +13,7 @@ struct state {
 	struct framebuffer	framebuffer;
 	sg_image			img;
 
-	struct core			core;
+	struct world		world;
 };
 
 #endif /* State_H */

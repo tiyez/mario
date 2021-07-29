@@ -3,33 +3,7 @@
 #define Game_H
 
 #include <stddef.h>
-
-struct input {
-	int		is_left;
-	int		is_right;
-	int		is_jump;
-	int		is_action;
-};
-
-enum block_type {
-	Block_empty,
-
-	Block_solid,
-	Block_action,
-};
-
-struct block {
-	enum block_type	type;
-	int				texture_index;
-};
-
-struct world {
-	int		width;
-	int		height;
-
-	struct block	*blocks;
-	unsigned		(*textures)[16][16];
-};
+#include "types.h"
 
 struct game {
 
@@ -37,7 +11,7 @@ struct game {
 
 	int		world_index;
 
-	struct world	*world;
+	struct map	*map;
 
 };
 

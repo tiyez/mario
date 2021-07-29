@@ -6,9 +6,10 @@ DEPDIR=.dep
 OBJDIR=.obj
 
 SRC = main.c\
-core.c\
+world.c\
 schema.c\
-file.c
+file.c\
+draw.c
 MSRC = sokol_unit.m
 ALL_SRC= $(MSRC) $(SRC)
 

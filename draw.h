@@ -2,18 +2,10 @@
 #ifndef Draw_H
 #define Draw_H
 
-#include "game.h"
+#include "types.h"
 
-struct framebuffer {
-	int		width;
-	int		height;
-	int		size;
-	int		stride;
-	int		channels;
-
-	unsigned char	*data;
-};
-
-void	draw_game (struct framebuffer *, struct game *);
+// draws RGBA texture to framebuffer
+void	draw_texture (struct framebuffer *, struct frame *, unsigned char *data);
+void	draw_texture_scaled (struct framebuffer *, struct frame *, float scale, unsigned char *data);
 
 #endif /* Draw_H */
