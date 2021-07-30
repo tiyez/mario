@@ -2,6 +2,9 @@
 #ifndef Editor_H
 #define Editor_H
 
+#include "types.h"
+#include "menu.h"
+
 struct editor_input {
 	int		left;
 	int		right;
@@ -20,6 +23,13 @@ enum editor_view {
 
 struct editor {
 	enum editor_view	view;
+
+	int					is_menu;
+	struct menu			menu;
+
+	struct choice		menu_choice;
+	struct choice		grid_choice;
+	struct choice		tile_choice;
 
 	int					current_tileset;
 	int					current_grid;

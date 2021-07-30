@@ -27,7 +27,15 @@ int		create_tileset (struct world *world, struct schema_entry *entry) {
 			tileset->size = tileset->height * tileset->stride;
 			tileset->grids_count = entry->tilegrids_count;
 			memcpy (tileset->grids, entry->tilegrids, sizeof entry->tilegrids[0] * entry->tilegrids_count);
-			result = 1;
+			tileset->filename = strdup (entry->filename);
+			if (tileset->filename) {
+				result = 1;
+			} else {
+				Error ("cannot duplicate filename of texture");
+				free (tileset->data);
+				tileset->data = 0;
+				result = 0;
+			}
 		} else {
 			Error ("cannot load image via stb_image");
 			result = 0;

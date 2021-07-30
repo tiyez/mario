@@ -9,7 +9,10 @@ SRC = main.c\
 world.c\
 schema.c\
 file.c\
-draw.c
+draw.c\
+editor.c\
+menu.c\
+types.c
 MSRC = sokol_unit.m
 ALL_SRC= $(MSRC) $(SRC)
 

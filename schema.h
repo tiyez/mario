@@ -6,7 +6,7 @@
 
 struct schema_entry {
 	enum { Schema_Type_tileset } type;
-	char	filename[128];
+	char			filename[128];
 	int				tilegrids_count;
 	struct tilegrid	tilegrids[8];
 };

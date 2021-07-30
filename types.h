@@ -51,6 +51,8 @@ struct tileset {
 	struct tilegrid	grids[8];
 
 	unsigned char	*data;
+
+	char			*filename;
 };
 
 struct framebuffer {
@@ -71,5 +73,11 @@ struct frame {
 	int		height;
 	int		stride;
 };
+
+struct choice {
+	int		select;
+};
+
+void	invalidate_choice (struct choice *);
 
 #endif /* Types_H */
