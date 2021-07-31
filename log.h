@@ -12,10 +12,14 @@ printf ("INF|%s:%d: " format "\n", __func__, __LINE__, ##__VA_ARGS__)
 #define Error(format, ...) \
 printf ("ERR|%s:%d: " format "\n", __func__, __LINE__, ##__VA_ARGS__)
 
+#define Trace(format, ...) \
+printf ("TRC|%s:%d: " format "\n", __func__, __LINE__, ##__VA_ARGS__)
+
 #else
 
 #define Info(...)
 #define Error(...)
+#define Trace(...)
 
 #endif
 

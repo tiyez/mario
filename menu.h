@@ -12,14 +12,7 @@ struct menu_entry {
 	int						subtype;
 	int						identity;
 	int						level;
-	union {
-		struct {
-			char	text[32];
-		} button;
-		struct {
-			char	text[32];
-		} label;
-	};
+	char					text[32];
 };
 
 struct menu {

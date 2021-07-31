@@ -2,6 +2,10 @@
 #ifndef Types_H
 #define Types_H
 
+#ifndef Types_Inline
+#define Types_Inline inline
+#endif
+
 struct input {
 	int		is_left;
 	int		is_right;
@@ -13,20 +17,17 @@ enum block_type {
 	Block_empty,
 
 	Block_solid,
-	Block_action,
-};
-
-struct block {
-	enum block_type	type;
-	int				texture_index;
+	Block_background,
 };
 
 struct map {
 	int		width;
 	int		height;
 
-	struct block	*blocks;
-	unsigned		(*textures)[16][16];
+	/* 8 bit - type, 8 bit - tileset, 4 bit - grid, 12 bit - tile */
+	unsigned	*data;
+
+	char	*filename;
 };
 
 struct tilegrid {
@@ -55,6 +56,16 @@ struct tileset {
 	char			*filename;
 };
 
+struct resources {
+	int					tilesets_count;
+	int					tilesets_max;
+	struct tileset		*tilesets;
+
+	int					maps_count;
+	int					maps_max;
+	struct map			*maps;
+};
+
 struct framebuffer {
 	int		width;
 	int		height;
@@ -78,6 +89,12 @@ struct choice {
 	int		select;
 };
 
-void	invalidate_choice (struct choice *);
+Types_Inline void	invalidate_choice (struct choice *choice) {
+	choice->select = -1;
+}
+
+int		new_tileset_resource (struct resources *);
+int		new_map_resource (struct resources *);
+void	free_resources (struct resources *);
 
 #endif /* Types_H */

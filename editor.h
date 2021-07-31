@@ -14,17 +14,35 @@ struct editor_input {
 	int		cancel;
 	int		erase;
 	int		menu;
+	int		view;
+	int		control_on;
+	int		control_off;
+	int		shift_on;
+	int		shift_off;
 };
 
 enum editor_view {
 	Editor_View_map,
 	Editor_View_tileset,
+
+	Editor_View__end,
+	Editor_View__start = Editor_View_map,
+};
+
+enum editor_menu_subtype {
+	Editor_Menu_Subtype_,
+	Editor_Menu_Subtype_tileset,
+	Editor_Menu_Subtype_map,
+	Editor_Menu_Subtype_map_new,
 };
 
 struct editor {
 	enum editor_view	view;
 
 	int					is_menu;
+	int					is_control;
+	int					is_shift;
+
 	struct menu			menu;
 
 	struct choice		menu_choice;
@@ -36,11 +54,9 @@ struct editor {
 	int					current_tile;
 
 	int					current_map;
+	int					is_map_resize;
 
-	int					tilesets_count;
-	struct tileset		*tilesets;
-	int					maps_count;
-	struct map			*maps;
+	struct resources	*resources;
 };
 
 void	init_editor (struct editor *);
