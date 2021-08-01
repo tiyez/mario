@@ -23,6 +23,8 @@ enum block_type {
 struct map {
 	int		width;
 	int		height;
+	int		tile_width;
+	int		tile_height;
 
 	/* 8 bit - type, 8 bit - tileset, 4 bit - grid, 12 bit - tile */
 	unsigned	*data;
@@ -56,16 +58,6 @@ struct tileset {
 	char			*filename;
 };
 
-struct resources {
-	int					tilesets_count;
-	int					tilesets_max;
-	struct tileset		*tilesets;
-
-	int					maps_count;
-	int					maps_max;
-	struct map			*maps;
-};
-
 struct framebuffer {
 	int		width;
 	int		height;
@@ -92,9 +84,5 @@ struct choice {
 Types_Inline void	invalidate_choice (struct choice *choice) {
 	choice->select = -1;
 }
-
-int		new_tileset_resource (struct resources *);
-int		new_map_resource (struct resources *);
-void	free_resources (struct resources *);
 
 #endif /* Types_H */

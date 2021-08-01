@@ -3,6 +3,7 @@
 #define Editor_H
 
 #include "types.h"
+#include "resources.h"
 #include "menu.h"
 
 struct editor_input {
@@ -59,7 +60,7 @@ struct editor {
 	struct resources	*resources;
 };
 
-void	init_editor (struct editor *);
+void	init_editor (struct editor *, struct resources *);
 void	run_editor (struct editor *, struct editor_input *);
 
 #endif /* Editor_H */

@@ -32,7 +32,7 @@ int		get_schema_entry (char *data, struct schema_entry *out) {
 		return (-1);
 	}
 
-	if (filename_size < (int)sizeof (out->filename) - 1) {
+	if (filename_size < (int) sizeof (out->filename) - 1) {
 		memcpy (out->filename, ptr, filename_size);
 		out->filename[filename_size] = 0;
 	} else {

@@ -9,8 +9,9 @@
 int		add_menu_entry (struct menu *menu, const struct menu_entry *entry) {
 	if (menu->entries_count >= menu->entries_max) {
 		const int	expand_to = Max (1, menu->entries_max * 2);
-		void		*ret = realloc (menu->entries, expand_to * sizeof *entry);
+		void		*ret;
 
+		ret = realloc (menu->entries, expand_to * sizeof *entry);
 		if (ret != 0) {
 			menu->entries = ret;
 			menu->entries_max = expand_to;

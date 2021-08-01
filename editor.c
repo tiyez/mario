@@ -7,9 +7,14 @@
 #include <string.h>
 #include <stdlib.h>
 
-void	init_editor (struct editor *editor) {
+void	init_editor (struct editor *editor, struct resources *resources) {
 	memset (editor, 0, sizeof *editor);
 	editor->view = Editor_View_map;
+	editor->resources = resources;
+	editor->current_tileset = -1;
+	editor->current_grid = -1;
+	editor->current_tile = -1;
+	editor->current_map = -1;
 }
 
 static void	init_editor_tileset_menu (struct editor *editor) {

@@ -17,6 +17,8 @@ void	*read_entire_file (FILE *handle, int *size) {
 			free (result);
 			result = 0;
 			Error ("cannot read file");
+		} else {
+			((char *) result)[*size] = 0;
 		}
 	} else {
 		Error ("file has zero size");

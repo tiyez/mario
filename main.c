@@ -10,7 +10,7 @@
 #include "sokol_time.h"
 
 #include "state.h"
-#include "draw.h"
+#include "editor_painter.h"
 
 #include "log.h"
 
@@ -25,8 +25,8 @@ sapp_desc	sokol_main(int argc, char* argv[]) {
 	stm_setup();
 	state.arguments_count = argc;
 	state.arguments = argv;
-	if (!init_world (&state.world)) {
-		Error ("cannot initialize world state");
+	if (!init_resources (&state.resources)) {
+		Error ("cannot initialize resources");
 		exit (1);
 	}
 	return (sapp_desc) {
@@ -51,6 +51,10 @@ void	init_state (struct state *state) {
 	sgl_setup (&(sgl_desc_t){
 					.sample_count = sapp_sample_count()
 				});
+
+	init_editor (&state->editor, &state->resources);
+	init_editor_painter (&state->editor_painter, &state->editor);
+
 	state->framebuffer.width = sapp_width();
 	state->framebuffer.height = sapp_height();
 	state->framebuffer.channels = 4;
@@ -71,26 +75,13 @@ void	init_state (struct state *state) {
 }
 
 void	calculate_frame (struct state *state) {
-	// int	need_redraw;
 
-	// need_redraw = run_game (&state->game, &state->input);
-	// memset (&state->input, 0, sizeof state->input);
+	run_editor (&state->editor, &state->editor_input);
+	run_editor_painter (&state->framebuffer, &state->editor_painter);
 
-	struct tileset	*tileset = &state->world.tilesets[0];
-	struct frame	frame = {
-		.x = -20,
-		// .x = 0,
-		.y = -20,
-		// .y = 0,
-		.width = 50,
-		.height = 50,
-		.stride = tileset->stride,
-	};
-	draw_texture_scaled (&state->framebuffer, &frame, 8, tileset->data);
+	memset (&state->editor_input, 0, sizeof state->editor_input);
 
 	if (1) {
-		// draw_game (&state->framebuffer, &state->game);
-
 		sg_update_image(state->img, &(sg_image_data) {
 							.subimage[0][0] = (sg_range) { .ptr = state->framebuffer.data, .size = state->framebuffer.size },
 						});
@@ -133,8 +124,57 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 	(void) state;
 	switch (event->type) {
 		case SAPP_EVENTTYPE_KEY_DOWN: {
+			switch (event->key_code) {
+				case SAPP_KEYCODE_LEFT_CONTROL:
+				case SAPP_KEYCODE_RIGHT_CONTROL:
+					state->editor_input.control_on = 1;
+				break ;
+				case SAPP_KEYCODE_LEFT_SHIFT:
+				case SAPP_KEYCODE_RIGHT_SHIFT:
+					state->editor_input.shift_on = 1;
+				break ;
+				case SAPP_KEYCODE_BACKSPACE:
+					state->editor_input.erase = 1;
+				break ;
+				case SAPP_KEYCODE_TAB:
+					state->editor_input.view = 1;
+				break ;
+				case SAPP_KEYCODE_ENTER:
+					state->editor_input.apply = 1;
+				break ;
+				case SAPP_KEYCODE_ESCAPE:
+					state->editor_input.cancel = 1;
+				break ;
+				case SAPP_KEYCODE_SPACE:
+					state->editor_input.menu = 1;
+				break ;
+				case SAPP_KEYCODE_LEFT:
+					state->editor_input.left = 1;
+				break ;
+				case SAPP_KEYCODE_RIGHT:
+					state->editor_input.right = 1;
+				break ;
+				case SAPP_KEYCODE_UP:
+					state->editor_input.up = 1;
+				break ;
+				case SAPP_KEYCODE_DOWN:
+					state->editor_input.down = 1;
+				break ;
+				default: break ;
+			}
 		} break ;
 		case SAPP_EVENTTYPE_KEY_UP: {
+			switch (event->key_code) {
+				case SAPP_KEYCODE_LEFT_CONTROL:
+				case SAPP_KEYCODE_RIGHT_CONTROL:
+					state->editor_input.control_off = 1;
+				break ;
+				case SAPP_KEYCODE_LEFT_SHIFT:
+				case SAPP_KEYCODE_RIGHT_SHIFT:
+					state->editor_input.shift_off = 1;
+				break ;
+				default: break ;
+			}
 		}
 		case SAPP_EVENTTYPE_CHAR: {
 		} break ;

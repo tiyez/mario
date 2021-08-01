@@ -6,13 +6,15 @@ DEPDIR=.dep
 OBJDIR=.obj
 
 SRC = main.c\
-world.c\
+resources.c\
 schema.c\
 file.c\
 draw.c\
 editor.c\
 menu.c\
-types.c
+types.c\
+editor_painter.c\
+menu_draw.c
 MSRC = sokol_unit.m
 ALL_SRC= $(MSRC) $(SRC)
 
