@@ -14,7 +14,8 @@ editor.c\
 menu.c\
 types.c\
 editor_painter.c\
-menu_draw.c
+menu_painter.c\
+terminal.c
 MSRC = sokol_unit.m
 ALL_SRC= $(MSRC) $(SRC)
 
@@ -37,7 +38,7 @@ $(DEPDIR):
 
 
 $(NAME): $(OBJ)
-	$(CC) $(OBJ) -o $(NAME) -lGL -ldl -lm -lX11 -lasound -lXi -lXcursor
+	$(CC) $(OBJ) -o $(NAME) -lGL -ldl -lm -lX11 -lasound -lXi -lXcursor -ltermcap
 # 	OpenGL
 # 	$(CC) -framework Cocoa -framework OpenGL $(OBJ) -o $(NAME)
 # 	Metal
@@ -77,7 +78,8 @@ $(DEPDIR)/%.cd: ;
 include $(wildcard $(DEPDIR)/*.md) $(wildcard $(DEPDIR)/*.cd)
 
 
-
+install_termcap:
+	sudo apt-get install libncurses5-dev
 
 
 

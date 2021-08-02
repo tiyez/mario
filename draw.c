@@ -3,6 +3,7 @@
 #include "game.h"
 
 #include <string.h>
+#include <stdio.h>
 
 #include "defs.h"
 

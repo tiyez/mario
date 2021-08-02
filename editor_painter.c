@@ -1,6 +1,6 @@
 
 #include "editor_painter.h"
-#include "menu_draw.h"
+#include "menu_painter.h"
 #include "types.h"
 
 #include "defs.h"
@@ -9,9 +9,10 @@
 #include <math.h>
 #include <string.h>
 
-void	init_editor_painter (struct editor_painter *painter, struct editor *editor) {
+void	init_editor_painter (struct editor_painter *painter, struct editor *editor, struct terminal *terminal) {
 	memset (painter, 0, sizeof *painter);
 	painter->editor = editor;
+	painter->terminal = terminal;
 }
 
 void	adjust_map_coordinates (struct editor_painter *painter, int x, int y) {
@@ -48,8 +49,8 @@ void	draw_editor_map (struct framebuffer *buffer, struct editor_painter *painter
 
 	if (editor->current_map >= 0 && editor->current_map < editor->resources->maps_count) {
 		struct map	*map = &editor->resources->maps[editor->current_map];
-		const int	tile_px = (editor->current_tile % map->width) * map->tile_width;
-		const int	tile_py = (editor->current_tile / map->width) * map->tile_height;
+		const int	tile_px = (editor->map_tile_choice.select % map->width) * map->tile_width;
+		const int	tile_py = (editor->map_tile_choice.select / map->width) * map->tile_height;
 
 		adjust_map_coordinates (painter, tile_px, tile_py);
 		for (int y = 0; y < map->height; y += 1) {
@@ -83,6 +84,32 @@ void	draw_editor_map (struct framebuffer *buffer, struct editor_painter *painter
 void	draw_editor_tileset (struct framebuffer *buffer, struct editor_painter *painter) {
 	struct editor	*editor = painter->editor;
 
+	if (editor->current_tileset >= 0 && editor->current_tileset < editor->resources->tilesets_count) {
+		struct tileset	*tileset = &editor->resources->tilesets[editor->current_tileset];
+
+		if (editor->current_grid >= 0 && editor->current_grid < tileset->grids_count) {
+			struct tilegrid	*grid = &tileset->grids[editor->current_grid];
+			const int	tile_px = (editor->tile_choice.select % grid->width) * grid->tile_width;
+			const int	tile_py = (editor->tile_choice.select / grid->width) * grid->tile_height;
+
+			adjust_map_coordinates (painter, tile_px, tile_py);
+			draw_texture (buffer, &(struct frame) {
+				.x = -painter->focus_x,
+				.y = -painter->focus_y,
+				.width = tileset->width,
+				.height = tileset->height,
+				.stride = tileset->stride,
+			}, tileset->data);
+		} else {
+			draw_texture (buffer, &(struct frame) {
+				.x = -painter->focus_x,
+				.y = -painter->focus_y,
+				.width = tileset->width,
+				.height = tileset->height,
+				.stride = tileset->stride,
+			}, tileset->data);
+		}
+	}
 	(void) editor, (void) buffer;
 }
 
@@ -90,7 +117,13 @@ void	run_editor_painter (struct framebuffer *buffer, struct editor_painter *pain
 	struct editor	*editor = painter->editor;
 
 	if (editor->is_menu) {
-		draw_menu (buffer, &editor->menu);
+		struct menu_painter	menu_painter = {
+			.menu = &editor->menu,
+			.terminal = painter->terminal,
+			.selected = editor->menu_choice.select,
+		};
+
+		run_menu_painter (buffer, &menu_painter);
 	} else {
 		if (editor->view == Editor_View_map) {
 			draw_editor_map (buffer, painter);

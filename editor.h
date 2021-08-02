@@ -49,6 +49,7 @@ struct editor {
 	struct choice		menu_choice;
 	struct choice		grid_choice;
 	struct choice		tile_choice;
+	struct choice		map_tile_choice;
 
 	int					current_tileset;
 	int					current_grid;

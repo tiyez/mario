@@ -76,12 +76,12 @@ static void	run_editor_menu (struct editor *editor, struct editor_input *input) 
 				}
 			} else if (entry->subtype == Editor_Menu_Subtype_map) {
 				editor->current_map = entry->identity;
-				invalidate_choice (&editor->tile_choice);
+				invalidate_choice (&editor->map_tile_choice);
 			} else if (entry->subtype == Editor_Menu_Subtype_map_new) {
 				char	*filename;
 
 				if (editor->resources->maps_count)
-				printf ("Please, enter filename of the new map: ");
+				printf ("Please, enter filename of the new map: assets/");
 				if (scanf ("%ms", &filename) > 0) {
 
 				} else {
@@ -305,9 +305,12 @@ static void	run_editor_map_edit (struct editor *editor, struct editor_input *inp
 				memset (map->data, 0, map->width * map->height * sizeof *map->data);
 			}
 		} else {
-			run_editor_2d_choicer (&editor->tile_choice, map->width, map->height, input);
+			if (editor->map_tile_choice.select < 0) {
+				editor->map_tile_choice.select = 0;
+			}
+			run_editor_2d_choicer (&editor->map_tile_choice, map->width, map->height, input);
 			if (input->apply || input->erase) {
-				unsigned	*tile = map->data + editor->tile_choice.select;
+				unsigned	*tile = map->data + editor->map_tile_choice.select;
 
 				if (input->apply) {
 					*tile = make_map_tile (1, editor->current_tileset, editor->current_grid, editor->current_tile);

@@ -12,6 +12,8 @@
 #include "state.h"
 #include "editor_painter.h"
 
+#include "settings.h"
+
 #include "log.h"
 
 void	init_state (struct state *);
@@ -38,7 +40,7 @@ sapp_desc	sokol_main(int argc, char* argv[]) {
 		.frame_userdata_cb = (void (*)(void *)) calculate_frame,
 		.cleanup_userdata_cb = (void (*)(void *)) cleanup,
 		.event_userdata_cb = (void (*)(const struct sapp_event *, void *)) handle_event,
-		.window_title = "TETRIS",
+		.window_title = "Super Mario Bros.",
 	};
 }
 
@@ -52,8 +54,9 @@ void	init_state (struct state *state) {
 					.sample_count = sapp_sample_count()
 				});
 
+	init_terminal (&state->terminal);
 	init_editor (&state->editor, &state->resources);
-	init_editor_painter (&state->editor_painter, &state->editor);
+	init_editor_painter (&state->editor_painter, &state->editor, &state->terminal);
 
 	state->framebuffer.width = sapp_width();
 	state->framebuffer.height = sapp_height();
@@ -62,7 +65,7 @@ void	init_state (struct state *state) {
 	state->framebuffer.size = state->framebuffer.stride * state->framebuffer.height;
 	state->framebuffer.data = malloc (state->framebuffer.size);
 
-	memset (state->framebuffer.data, 255, state->framebuffer.size);
+	memset (state->framebuffer.data, Clear_Brightness, state->framebuffer.size);
 	// memset (&state->input, 0, sizeof state->input);
 
 	state->img = sg_make_image(&(sg_image_desc){
@@ -75,6 +78,8 @@ void	init_state (struct state *state) {
 }
 
 void	calculate_frame (struct state *state) {
+
+	memset (state->framebuffer.data, Clear_Brightness, state->framebuffer.size);
 
 	run_editor (&state->editor, &state->editor_input);
 	run_editor_painter (&state->framebuffer, &state->editor_painter);

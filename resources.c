@@ -17,6 +17,7 @@ int		create_tileset (struct resources *resources, struct schema_entry *entry) {
 
 	tileset.data = stbi_load (entry->filename, &tileset.width, &tileset.height, &tileset.channels, 4);
 	if (tileset.data) {
+		tileset.channels = 4;
 		tileset.stride = tileset.width * tileset.channels;
 		tileset.size = tileset.height * tileset.stride;
 		tileset.grids_count = entry->tilegrids_count;

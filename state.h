@@ -6,6 +6,7 @@
 #include "resources.h"
 #include "editor.h"
 #include "editor_painter.h"
+#include "terminal.h"
 
 struct state {
 	int		arguments_count;
@@ -19,6 +20,8 @@ struct state {
 	struct editor			editor;
 	struct editor_painter	editor_painter;
 	struct editor_input		editor_input;
+
+	struct terminal			terminal;
 };
 
 #endif /* State_H */
