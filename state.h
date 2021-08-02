@@ -14,6 +14,7 @@ struct state {
 
 	int					need_redraw;
 	struct framebuffer	framebuffer;
+	struct framebuffer	screenbuffer;
 	sg_image			img;
 
 	struct resources		resources;

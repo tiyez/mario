@@ -5,6 +5,7 @@
 
 #include "defs.h"
 #include "log.h"
+#include "settings.h"
 
 #include <math.h>
 #include <string.h>
@@ -16,22 +17,8 @@ void	init_editor_painter (struct editor_painter *painter, struct editor *editor,
 }
 
 void	adjust_map_coordinates (struct editor_painter *painter, int x, int y) {
-	const int		focus_box_radius = 0;
-	float			dir_x = 0;
-	float			dir_y = 0;
-	float			len;
-
-	dir_x = (painter->focus_x + focus_box_radius < x) - (painter->focus_x - focus_box_radius > x);
-	dir_y = (painter->focus_y + focus_box_radius < y) - (painter->focus_y - focus_box_radius > y);
-	len = dir_x * dir_x + dir_y * dir_y;
-	if (len > 0) {
-		len = sqrtf (len);
-		dir_x /= len;
-		dir_y /= len;
-
-		painter->focus_x = Lerp (painter->focus_x, x, dir_x);
-		painter->focus_y = Lerp (painter->focus_y, y, dir_y);
-	}
+	painter->focus_x = Lerp (painter->focus_x, x - Draw_Window_Width / 2 + 30, 0.3f);
+	painter->focus_y = Lerp (painter->focus_y, y - Draw_Window_Height / 2 + 30, 0.3f);
 }
 
 void	extract_map_values (unsigned value, int *type, int *tileset, int *grid, int *tile) {

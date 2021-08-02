@@ -12,6 +12,7 @@ int		get_schema_entry (char *data, struct schema_entry *out) {
 	char	*ext;
 	char	*ptr = data;
 
+	memset (out, 0, sizeof *out);
 	if (strncmp (ptr, "tileset:", 8) == 0) {
 		out->type = Schema_Type_tileset;
 		ptr += 8;
@@ -65,6 +66,7 @@ int		get_schema_entry (char *data, struct schema_entry *out) {
 				Error ("invalid tileset grid format");
 				return (-1);
 			}
+			ptr += 1;
 			tilegrid->height = strtol (ptr, &ptr, 10);
 
 			tilegrid->tile_width = strtol (ptr, &ptr, 10);
@@ -98,6 +100,7 @@ int		get_schema_entry (char *data, struct schema_entry *out) {
 		}
 	}
 
+	printf ("grids_count: %d\n", out->tilegrids_count);
 	return (ptr - data);
 }
 

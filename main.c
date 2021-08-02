@@ -32,8 +32,8 @@ sapp_desc	sokol_main(int argc, char* argv[]) {
 		exit (1);
 	}
 	return (sapp_desc) {
-		.width = 800,
-		.height = 600,
+		.width = Window_Width,
+		.height = Window_Height,
 		.high_dpi = true,
 		.user_data = &state,
 		.init_userdata_cb = (void (*)(void *)) init_state,
@@ -58,19 +58,26 @@ void	init_state (struct state *state) {
 	init_editor (&state->editor, &state->resources);
 	init_editor_painter (&state->editor_painter, &state->editor, &state->terminal);
 
-	state->framebuffer.width = sapp_width();
-	state->framebuffer.height = sapp_height();
+	state->framebuffer.width = sapp_width() / Window_Scale;
+	state->framebuffer.height = sapp_height() / Window_Scale;
 	state->framebuffer.channels = 4;
 	state->framebuffer.stride = state->framebuffer.width * state->framebuffer.channels;
 	state->framebuffer.size = state->framebuffer.stride * state->framebuffer.height;
 	state->framebuffer.data = malloc (state->framebuffer.size);
 
-	memset (state->framebuffer.data, Clear_Brightness, state->framebuffer.size);
+	state->screenbuffer.width = sapp_width();
+	state->screenbuffer.height = sapp_height();
+	state->screenbuffer.channels = 4;
+	state->screenbuffer.stride = state->screenbuffer.width * state->screenbuffer.channels;
+	state->screenbuffer.size = state->screenbuffer.stride * state->screenbuffer.height;
+	state->screenbuffer.data = malloc (state->screenbuffer.size);
+
+	memset (state->screenbuffer.data, Clear_Brightness, state->screenbuffer.size);
 	// memset (&state->input, 0, sizeof state->input);
 
 	state->img = sg_make_image(&(sg_image_desc){
-								.width = state->framebuffer.width,
-								.height = state->framebuffer.height,
+								.width = state->screenbuffer.width,
+								.height = state->screenbuffer.height,
 								.usage = SG_USAGE_DYNAMIC,
 									// .data.subimage[0][0] = (sg_range) { .ptr = state->buffer, .size = state->buffer_size },
 								});
@@ -87,8 +94,10 @@ void	calculate_frame (struct state *state) {
 	memset (&state->editor_input, 0, sizeof state->editor_input);
 
 	if (1) {
+		draw_line (&state->framebuffer, 0, 30, state->framebuffer.width, 120, 0xFFFFFFFF);
+		draw_framebuffer (&state->screenbuffer, &state->framebuffer);
 		sg_update_image(state->img, &(sg_image_data) {
-							.subimage[0][0] = (sg_range) { .ptr = state->framebuffer.data, .size = state->framebuffer.size },
+							.subimage[0][0] = (sg_range) { .ptr = state->screenbuffer.data, .size = state->screenbuffer.size },
 						});
 
 
@@ -103,9 +112,9 @@ void	calculate_frame (struct state *state) {
 
 		sgl_begin_quads();
 		sgl_v3f_t2f(0, 0, 0, 0,  1.0f);
-		sgl_v3f_t2f(state->framebuffer.width, 0, 0,  1.0f,  1.0f);
-		sgl_v3f_t2f(state->framebuffer.width, state->framebuffer.height, 0,  1.0f, 0);
-		sgl_v3f_t2f(0, state->framebuffer.height, 0, 0, 0);
+		sgl_v3f_t2f(state->screenbuffer.width, 0, 0,  1.0f,  1.0f);
+		sgl_v3f_t2f(state->screenbuffer.width, state->screenbuffer.height, 0,  1.0f, 0);
+		sgl_v3f_t2f(0, state->screenbuffer.height, 0, 0, 0);
 		sgl_end();
 
 		sg_begin_default_pass(&(sg_pass_action) {
