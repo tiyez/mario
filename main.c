@@ -94,12 +94,10 @@ void	calculate_frame (struct state *state) {
 	memset (&state->editor_input, 0, sizeof state->editor_input);
 
 	if (1) {
-		draw_line (&state->framebuffer, 0, 30, state->framebuffer.width, 120, 0xFFFFFFFF);
 		draw_framebuffer (&state->screenbuffer, &state->framebuffer);
 		sg_update_image(state->img, &(sg_image_data) {
 							.subimage[0][0] = (sg_range) { .ptr = state->screenbuffer.data, .size = state->screenbuffer.size },
 						});
-
 
 		sgl_viewport(0, 0, sapp_width(), sapp_height(), true);
 		sgl_defaults();
@@ -135,6 +133,8 @@ void	cleanup (struct state *state) {
 }
 
 void	handle_event (const struct sapp_event *event, struct state *state) {
+	static int	is_control;
+
 	(void) state;
 	switch (event->type) {
 		case SAPP_EVENTTYPE_KEY_DOWN: {
@@ -142,10 +142,15 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 				case SAPP_KEYCODE_LEFT_CONTROL:
 				case SAPP_KEYCODE_RIGHT_CONTROL:
 					state->editor_input.control_on = 1;
+					is_control = 1;
 				break ;
 				case SAPP_KEYCODE_LEFT_SHIFT:
 				case SAPP_KEYCODE_RIGHT_SHIFT:
 					state->editor_input.shift_on = 1;
+				break ;
+				case SAPP_KEYCODE_LEFT_ALT:
+				case SAPP_KEYCODE_RIGHT_ALT:
+					state->editor_input.alt_on = 1;
 				break ;
 				case SAPP_KEYCODE_BACKSPACE:
 					state->editor_input.erase = 1;
@@ -174,6 +179,11 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 				case SAPP_KEYCODE_DOWN:
 					state->editor_input.down = 1;
 				break ;
+				case SAPP_KEYCODE_S:
+					if (is_control) {
+						state->editor_input.save = 1;
+					}
+				break ;
 				default: break ;
 			}
 		} break ;
@@ -182,10 +192,15 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 				case SAPP_KEYCODE_LEFT_CONTROL:
 				case SAPP_KEYCODE_RIGHT_CONTROL:
 					state->editor_input.control_off = 1;
+					is_control = 0;
 				break ;
 				case SAPP_KEYCODE_LEFT_SHIFT:
 				case SAPP_KEYCODE_RIGHT_SHIFT:
 					state->editor_input.shift_off = 1;
+				break ;
+				case SAPP_KEYCODE_LEFT_ALT:
+				case SAPP_KEYCODE_RIGHT_ALT:
+					state->editor_input.alt_off = 1;
 				break ;
 				default: break ;
 			}

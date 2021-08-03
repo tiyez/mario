@@ -147,9 +147,14 @@ void	draw_line (struct framebuffer *buffer, int x, int y, int xend, int yend, un
 	}
 }
 
-// void	draw_linebox (struct framebuffer *buffer, int x, int y, int width, int height, unsigned color) {
-
-// }
+void	draw_linebox (struct framebuffer *buffer, int x, int y, int width, int height, unsigned color) {
+	if (width > 0 && height > 0) {
+		draw_line (buffer, x, y, x, y + height - 1, color);
+		draw_line (buffer, x, y, x + width - 1, y, color);
+		draw_line (buffer, x, y + height - 1, x + width, y + height, color);
+		draw_line (buffer, x + width - 1, y, x + width, y + height, color);
+	}
+}
 
 void	draw_framebuffer (struct framebuffer *dest, struct framebuffer *src) {
 	const float	x_scale = (float) src->width / dest->width;

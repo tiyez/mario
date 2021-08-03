@@ -95,25 +95,63 @@ static void	run_editor_menu (struct editor *editor, struct editor_input *input) 
 	}
 }
 
+static int	get_grid_pixel_width (struct tilegrid *grid) {
+	int		width = grid->tile_width * grid->width + grid->tile_padding_x * (grid->width - 1);
+
+	return (width);
+}
+
+static int	get_grid_pixel_height (struct tilegrid *grid) {
+	int		height = grid->tile_height * grid->height + grid->tile_padding_y * (grid->height - 1);
+
+	return (height);
+}
+
 static void	run_editor_tileset_grid_choice (struct editor *editor, struct editor_input *input) {
-	const int		grids_count = editor->resources->tilesets[editor->current_tileset].grids_count;
+	struct tileset	*tileset = &editor->resources->tilesets[editor->current_tileset];
 	struct choice	*choice = &editor->grid_choice;
 
-	if (grids_count > 0) {
-		if (input->left && choice->select > 0) {
-			choice->select -= 1;
+	if (tileset->grids_count > 0) {
+		if (choice->select < 0) {
+			choice->select = 0;
 		}
-		if (input->right && choice->select < grids_count - 1) {
-			choice->select += 1;
-		}
-		if (input->apply && choice->select >= 0) {
-			editor->current_grid = choice->select;
-			editor->current_tile = -1;
-			invalidate_choice (&editor->tile_choice);
-		}
-		if (input->cancel) {
-			editor->current_grid = -1;
-			editor->current_tileset = -1;
+		if (editor->is_alt && (choice->select >= 0)) {
+			struct tilegrid	*grid = &tileset->grids[choice->select];
+
+			if (input->left && grid->x > 0) {
+				grid->x -= 1;
+			}
+			if (input->right && grid->x + get_grid_pixel_width (grid) < tileset->width - 1) {
+				grid->x += 1;
+			}
+			if (input->up && grid->y > 0) {
+				grid->y -= 1;
+			}
+			if (input->down && grid->y + get_grid_pixel_height (grid) < tileset->height - 1) {
+				grid->y += 1;
+			}
+		} else {
+			if (input->left) {
+				choice->select -= 1;
+				if (choice->select < 0) {
+					choice->select = tileset->grids_count - 1;
+				}
+			}
+			if (input->right) {
+				choice->select += 1;
+				if (choice->select >= tileset->grids_count) {
+					choice->select = 0;
+				}
+			}
+			if (input->apply && choice->select >= 0) {
+				editor->current_grid = choice->select;
+				editor->current_tile = -1;
+				invalidate_choice (&editor->tile_choice);
+			}
+			if (input->cancel) {
+				editor->current_grid = -1;
+				editor->current_tileset = -1;
+			}
 		}
 	}
 }
@@ -138,20 +176,70 @@ static void	run_editor_2d_choicer (struct choice *choice, int width, int height,
 }
 
 static void	run_editor_tileset_tile_choice (struct editor *editor, struct editor_input *input) {
-	const struct tilegrid	*grid = &editor->resources->tilesets[editor->current_tileset].grids[editor->current_grid];
-	const int				tiles_count = grid->width * grid->height;
+	struct tileset	*tileset = &editor->resources->tilesets[editor->current_tileset];
+	struct tilegrid	*grid = &tileset->grids[editor->current_grid];
+	const int		tiles_count = grid->width * grid->height;
 
 	if (tiles_count > 0) {
 		if (editor->tile_choice.select < 0) {
 			editor->tile_choice.select = 0;
 		}
-		run_editor_2d_choicer (&editor->tile_choice, grid->width, grid->height, input);
-		if (input->apply) {
-			editor->current_tile = editor->tile_choice.select;
-		}
-		if (input->cancel) {
-			editor->current_tile = -1;
-			editor->current_grid = -1;
+		if (!editor->is_alt && !editor->is_control && !editor->is_shift) {
+			run_editor_2d_choicer (&editor->tile_choice, grid->width, grid->height, input);
+			if (input->apply) {
+				editor->current_tile = editor->tile_choice.select;
+			}
+			if (input->cancel) {
+				editor->current_tile = -1;
+				editor->current_grid = -1;
+			}
+		} else if (editor->is_alt) {
+			if (input->left && grid->tile_width > 1) {
+				grid->tile_width -= 1;
+			}
+			grid->tile_width += 1;
+			if (input->right && grid->x + get_grid_pixel_width (grid) < tileset->width) {
+				grid->tile_width += 1;
+			}
+			grid->tile_width -= 1;
+			if (input->up && grid->tile_height > 1) {
+				grid->tile_height -= 1;
+			}
+			grid->tile_height += 1;
+			if (input->down && grid->y + get_grid_pixel_height (grid) < tileset->height) {
+				grid->tile_height += 1;
+			}
+			grid->tile_height -= 1;
+		} else if (editor->is_control) {
+			int		sx = editor->tile_choice.select % grid->width;
+			int		sy = editor->tile_choice.select / grid->width;
+			int		cx = editor->current_tile % grid->width;
+			int		cy = editor->current_tile / grid->width;
+
+			if (input->left && grid->width > 1) {
+				grid->width -= 1;
+			}
+			grid->width += 1;
+			if (input->right && grid->x + get_grid_pixel_width (grid) < tileset->width) {
+				grid->width += 1;
+			}
+			grid->width -= 1;
+			if (input->up && grid->height > 1) {
+				grid->height -= 1;
+			}
+			grid->height += 1;
+			if (input->down && grid->y + get_grid_pixel_height (grid) < tileset->height) {
+				grid->height += 1;
+			}
+			grid->height -= 1;
+			sx = Min (sx, grid->width - 1);
+			sy = Min (sy, grid->height - 1);
+			cx = Min (cx, grid->width - 1);
+			cy = Min (cy, grid->height - 1);
+			editor->tile_choice.select = sy * grid->width + sx;
+			if (editor->current_tile >= 0) {
+				editor->current_tile = cy * grid->width + cx;
+			}
 		}
 	}
 }
@@ -359,6 +447,15 @@ void	run_editor (struct editor *editor, struct editor_input *input) {
 	}
 	if (input->shift_off) {
 		editor->is_shift = 0;
+	}
+	if (input->alt_on) {
+		editor->is_alt = 1;
+	}
+	if (input->alt_off) {
+		editor->is_alt = 0;
+	}
+	if (input->save) {
+		store_resources (editor->resources);
 	}
 	if (editor->view == Editor_View_map) {
 		run_editor_map_view (editor, input);

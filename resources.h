@@ -18,5 +18,6 @@ int		init_resources (struct resources *);
 int		new_tileset_resource (struct resources *);
 int		new_map_resource (struct resources *);
 void	free_resources (struct resources *);
+void	store_resources (struct resources *);
 
 #endif /* Resources_H */

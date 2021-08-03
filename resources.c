@@ -62,6 +62,8 @@ int		init_resources (struct resources *resources) {
 	schema_handle = fopen ("schema", "r");
 	if (schema_handle) {
 		schema_data = read_entire_file (schema_handle, &schema_size);
+		fclose (schema_handle);
+		schema_handle = 0;
 		if (schema_data) {
 			struct schema_entry	entry = {0};
 			int					offset = 0, ret, count = 0;
@@ -154,7 +156,29 @@ void	free_resources (struct resources *res) {
 	memset (res, 0, sizeof *res);
 }
 
+void	store_resources (struct resources *res) {
+	FILE	*schema_handle;
 
+	schema_handle = fopen ("schema", "w");
+	if (schema_handle) {
+		for (int tileset_index = 0; tileset_index < res->tilesets_count; tileset_index += 1) {
+			struct tileset	*tileset = &res->tilesets[tileset_index];
+
+			fprintf (schema_handle, "tileset:%s\n", tileset->filename);
+			for (int grid_index = 0; grid_index < tileset->grids_count; grid_index += 1) {
+				struct tilegrid	*grid = &tileset->grids[grid_index];
+
+				fprintf (schema_handle, "@ %d-%d %dx%d %d,%d %d,%d\n",
+						grid->width, grid->height,
+						grid->tile_width, grid->tile_height,
+						grid->x, grid->y,
+						grid->tile_padding_x, grid->tile_padding_y);
+			}
+		}
+	}
+	fclose (schema_handle);
+	schema_handle = 0;
+}
 
 
 

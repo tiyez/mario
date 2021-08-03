@@ -19,6 +19,8 @@ void	init_editor_painter (struct editor_painter *painter, struct editor *editor,
 void	adjust_map_coordinates (struct editor_painter *painter, int x, int y) {
 	painter->focus_x = Lerp (painter->focus_x, x - Draw_Window_Width / 2 + 30, 0.3f);
 	painter->focus_y = Lerp (painter->focus_y, y - Draw_Window_Height / 2 + 30, 0.3f);
+	painter->focus_x = roundf (painter->focus_x * 100) / 100;
+	painter->focus_y = roundf (painter->focus_y * 100) / 100;
 }
 
 void	extract_map_values (unsigned value, int *type, int *tileset, int *grid, int *tile) {
@@ -68,6 +70,28 @@ void	draw_editor_map (struct framebuffer *buffer, struct editor_painter *painter
 	}
 }
 
+static int	get_grid_pixel_width (struct tilegrid *grid) {
+	int		width = grid->tile_width * grid->width + grid->tile_padding_x * (grid->width - 1);
+
+	return (width);
+}
+
+static int	get_grid_pixel_height (struct tilegrid *grid) {
+	int		height = grid->tile_height * grid->height + grid->tile_padding_y * (grid->height - 1);
+
+	return (height);
+}
+
+static int	get_grid_pixel_tile_x (struct tilegrid *grid, int x) {
+	x = grid->tile_width * x + grid->tile_padding_x * x + grid->x;
+	return (x);
+}
+
+static int	get_grid_pixel_tile_y (struct tilegrid *grid, int y) {
+	y = grid->tile_height * y + grid->tile_padding_y * y + grid->y;
+	return (y);
+}
+
 void	draw_editor_tileset (struct framebuffer *buffer, struct editor_painter *painter) {
 	struct editor	*editor = painter->editor;
 
@@ -76,10 +100,33 @@ void	draw_editor_tileset (struct framebuffer *buffer, struct editor_painter *pai
 
 		if (editor->current_grid >= 0 && editor->current_grid < tileset->grids_count) {
 			struct tilegrid	*grid = &tileset->grids[editor->current_grid];
-			const int	tile_px = (editor->tile_choice.select % grid->width) * grid->tile_width;
-			const int	tile_py = (editor->tile_choice.select / grid->width) * grid->tile_height;
+			const int	tile_px = get_grid_pixel_tile_x (grid, editor->tile_choice.select % grid->width);
+			const int	tile_py = get_grid_pixel_tile_y (grid, editor->tile_choice.select / grid->width);
 
-			adjust_map_coordinates (painter, tile_px, tile_py);
+			if (editor->tile_choice.select >= 0) {
+				adjust_map_coordinates (painter, tile_px, tile_py);
+			} else {
+				adjust_map_coordinates (painter, grid->x, grid->y);
+			}
+			const int	focus_x = roundf (painter->focus_x), focus_y = roundf (painter->focus_y);
+			draw_texture (buffer, &(struct frame) {
+				.x = -focus_x,
+				.y = -focus_y,
+				.width = tileset->width,
+				.height = tileset->height,
+				.stride = tileset->stride,
+			}, tileset->data);
+			if (editor->current_tile >= 0) {
+				const int	tile_px = get_grid_pixel_tile_x (grid, editor->current_tile % grid->width);
+				const int	tile_py = get_grid_pixel_tile_y (grid, editor->current_tile / grid->width);
+
+				draw_linebox (buffer, tile_px - focus_x, tile_py - focus_y, grid->tile_width, grid->tile_height, 0xFF776666);
+			}
+			draw_linebox (buffer, tile_px - focus_x, tile_py - focus_y, grid->tile_width, grid->tile_height, 0xFFFFFFFF);
+		} else if (editor->grid_choice.select >= 0) {
+			struct tilegrid	*grid = &tileset->grids[editor->grid_choice.select];
+
+			adjust_map_coordinates (painter, grid->x, grid->y);
 			draw_texture (buffer, &(struct frame) {
 				.x = -painter->focus_x,
 				.y = -painter->focus_y,
@@ -87,14 +134,7 @@ void	draw_editor_tileset (struct framebuffer *buffer, struct editor_painter *pai
 				.height = tileset->height,
 				.stride = tileset->stride,
 			}, tileset->data);
-		} else {
-			draw_texture (buffer, &(struct frame) {
-				.x = -painter->focus_x,
-				.y = -painter->focus_y,
-				.width = tileset->width,
-				.height = tileset->height,
-				.stride = tileset->stride,
-			}, tileset->data);
+			draw_linebox (buffer, grid->x - painter->focus_x - 1, grid->y - painter->focus_y - 1, get_grid_pixel_width (grid) + 1, get_grid_pixel_height (grid) + 1, 0xFFFFAAFF);
 		}
 	}
 	(void) editor, (void) buffer;

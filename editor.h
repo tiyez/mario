@@ -16,10 +16,13 @@ struct editor_input {
 	int		erase;
 	int		menu;
 	int		view;
+	int		save;
 	int		control_on;
 	int		control_off;
 	int		shift_on;
 	int		shift_off;
+	int		alt_on;
+	int		alt_off;
 };
 
 enum editor_view {
@@ -43,6 +46,7 @@ struct editor {
 	int					is_menu;
 	int					is_control;
 	int					is_shift;
+	int					is_alt;
 
 	struct menu			menu;
 

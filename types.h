@@ -33,12 +33,12 @@ struct map {
 };
 
 struct tilegrid {
+	int		x;
+	int		y;
 	int		width;
 	int		height;
 	int		tile_width;
 	int		tile_height;
-	int		tile_offset_x;
-	int		tile_offset_y;
 	int		tile_padding_x;
 	int		tile_padding_y;
 };

@@ -77,13 +77,13 @@ int		get_schema_entry (char *data, struct schema_entry *out) {
 			ptr += 1;
 			tilegrid->tile_height = strtol (ptr, &ptr, 10);
 
-			tilegrid->tile_offset_x = strtol (ptr, &ptr, 10);
+			tilegrid->x = strtol (ptr, &ptr, 10);
 			if (*ptr != ',') {
 				Error ("invalid tileset grid format");
 				return (-1);
 			}
 			ptr += 1;
-			tilegrid->tile_offset_y = strtol (ptr, &ptr, 10);
+			tilegrid->y = strtol (ptr, &ptr, 10);
 
 			tilegrid->tile_padding_x = strtol (ptr, &ptr, 10);
 			if (*ptr != ',') {
