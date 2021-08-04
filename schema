@@ -13,3 +13,4 @@ tileset:assets/smb_tiles.png
 @ 10-10 16x16 0,0 0,0
 tileset:assets/SuperMarioBrosMap1-1.png
 @ 10-10 16x16 0,0 0,0
+map:assets/hello.map

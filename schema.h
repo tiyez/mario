@@ -5,7 +5,7 @@
 #include "types.h"
 
 struct schema_entry {
-	enum { Schema_Type_tileset } type;
+	enum { Schema_Type_tileset, Schema_Type_map } type;
 	char			filename[128];
 	int				tilegrids_count;
 	struct tilegrid	tilegrids[8];

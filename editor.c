@@ -34,7 +34,15 @@ static void	init_editor_tileset_menu (struct editor *editor) {
 }
 
 static void	init_editor_map_menu (struct editor *editor) {
+	struct menu_entry	entry = {
+		.type = Menu_Entry_button,
+		.subtype = Editor_Menu_Subtype_map_new,
+		.identity = 0,
+	};
+
+	strncpy (entry.text, "create new map", sizeof "create new map" - 1);
 	clear_menu (&editor->menu);
+	add_menu_entry (&editor->menu, &entry);
 	for (int index = 0; index < editor->resources->maps_count; index += 1) {
 		struct menu_entry	entry = {
 			.type = Menu_Entry_button,
@@ -80,10 +88,22 @@ static void	run_editor_menu (struct editor *editor, struct editor_input *input) 
 			} else if (entry->subtype == Editor_Menu_Subtype_map_new) {
 				char	*filename;
 
-				if (editor->resources->maps_count)
 				printf ("Please, enter filename of the new map: assets/");
 				if (scanf ("%ms", &filename) > 0) {
+					int			index = new_map_resource (editor->resources);
+					struct map	*map = &editor->resources->maps[index];
 
+					memset (map, 0, sizeof *map);
+					map->width = map->height = 1;
+					map->tile_width = map->tile_height = 16;
+					map->data = malloc (sizeof *map->data);
+					*map->data = 0;
+					map->filename = malloc (sizeof "assets/" + strlen (filename));
+					map->filename[0] = 0;
+					map->filename = strcat (map->filename, "assets/");
+					map->filename = strcat (map->filename, filename);
+					free (filename);
+					editor->current_map = index;
 				} else {
 					Error ("invalid filename for new map");
 				}
@@ -380,9 +400,6 @@ static void	run_editor_map_edit (struct editor *editor, struct editor_input *inp
 	struct map	*map = &editor->resources->maps[editor->current_map];
 
 	if (map->width > 0 && map->height > 0) {
-		if (editor->tile_choice.select < 0) {
-			editor->tile_choice.select = 0;
-		}
 		if (editor->is_control) {
 			if (editor->is_shift) {
 				run_editor_map_shrinker (map, input);
@@ -400,15 +417,14 @@ static void	run_editor_map_edit (struct editor *editor, struct editor_input *inp
 			if (input->apply || input->erase) {
 				unsigned	*tile = map->data + editor->map_tile_choice.select;
 
-				if (input->apply) {
+				if (input->apply && editor->current_tileset >= 0 && editor->current_grid >= 0 && editor->current_tile >= 0) {
 					*tile = make_map_tile (1, editor->current_tileset, editor->current_grid, editor->current_tile);
 				} else {
 					*tile = 0;
 				}
 			}
 			if (input->cancel) {
-				editor->current_tile = -1;
-				editor->current_grid = -1;
+				editor->current_map = -1;
 			}
 		}
 	}

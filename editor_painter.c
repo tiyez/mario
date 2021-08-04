@@ -40,8 +40,11 @@ void	draw_editor_map (struct framebuffer *buffer, struct editor_painter *painter
 		struct map	*map = &editor->resources->maps[editor->current_map];
 		const int	tile_px = (editor->map_tile_choice.select % map->width) * map->tile_width;
 		const int	tile_py = (editor->map_tile_choice.select / map->width) * map->tile_height;
+		int			focus_x, focus_y;
 
 		adjust_map_coordinates (painter, tile_px, tile_py);
+		focus_x = painter->focus_x;
+		focus_y = painter->focus_y;
 		for (int y = 0; y < map->height; y += 1) {
 			for (int x = 0; x < map->width; x += 1) {
 				unsigned	map_tile = *(map->data + y * map->width + x);
@@ -57,8 +60,8 @@ void	draw_editor_map (struct framebuffer *buffer, struct editor_painter *painter
 						const int	tile_py = (tile_index / grid->width) * grid->tile_height;
 
 						draw_texture (buffer, &(struct frame) {
-							.x = x - painter->focus_x,
-							.y = y - painter->focus_y,
+							.x = x - focus_x,
+							.y = y - focus_y,
 							.width = grid->tile_width,
 							.height = grid->tile_height,
 							.stride = tileset->stride,
@@ -67,6 +70,7 @@ void	draw_editor_map (struct framebuffer *buffer, struct editor_painter *painter
 				}
 			}
 		}
+		draw_linebox (buffer, tile_px - focus_x, tile_py - focus_y, map->tile_width, map->tile_height, 0xFFFFFFFF);
 	}
 }
 

@@ -16,20 +16,35 @@ int		get_schema_entry (char *data, struct schema_entry *out) {
 	if (strncmp (ptr, "tileset:", 8) == 0) {
 		out->type = Schema_Type_tileset;
 		ptr += 8;
+	} else if (strncmp (ptr, "map:", 4) == 0) {
+		out->type = Schema_Type_map;
+		ptr += 4;
 	} else {
 		Error ("invalid schema entry type");
 		return (-1);
 	}
 
 	filename = ptr;
-	if ((ext = strstr (ptr, ".png"))) {
-		filename_size = (ext - ptr) + 4;
-	} else if ((ext = strstr (ptr, ".jpg"))) {
-		filename_size = (ext - ptr) + 4;
-	} else if ((ext = strstr (ptr, ".bmp"))) {
-		filename_size = (ext - ptr) + 4;
+	if (out->type == Schema_Type_tileset) {
+		if ((ext = strstr (ptr, ".png"))) {
+			filename_size = (ext - ptr) + 4;
+		} else if ((ext = strstr (ptr, ".jpg"))) {
+			filename_size = (ext - ptr) + 4;
+		} else if ((ext = strstr (ptr, ".bmp"))) {
+			filename_size = (ext - ptr) + 4;
+		} else {
+			Error ("unsupported filename extension for tileset (.png .jpg .bmp)");
+			return (-1);
+		}
+	} else if (out->type == Schema_Type_map) {
+		if ((ext = strstr (ptr, ".map"))) {
+			filename_size = (ext - ptr) + 4;
+		} else {
+			Error ("unsupported filename extension for map (.map)");
+			return (-1);
+		}
 	} else {
-		Error ("unsupported filename extension");
+		Error ("invalid schema entry type");
 		return (-1);
 	}
 
@@ -99,8 +114,6 @@ int		get_schema_entry (char *data, struct schema_entry *out) {
 			ptr += !!*ptr;
 		}
 	}
-
-	printf ("grids_count: %d\n", out->tilegrids_count);
 	return (ptr - data);
 }
 

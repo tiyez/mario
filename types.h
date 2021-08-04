@@ -32,6 +32,14 @@ struct map {
 	char	*filename;
 };
 
+struct map_data_header {
+	unsigned	width;
+	unsigned	height;
+	unsigned	tile_width;
+	unsigned	tile_height;
+	unsigned	reserved[16];
+};
+
 struct tilegrid {
 	int		x;
 	int		y;

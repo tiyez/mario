@@ -51,6 +51,49 @@ int		create_tileset (struct resources *resources, struct schema_entry *entry) {
 	return (result);
 }
 
+int		create_map (struct resources *resources, struct schema_entry *entry) {
+	struct map	map = {0};
+	FILE		*file;
+	int			result = 0;
+
+	file = fopen (entry->filename, "rb");
+	if (file) {
+		struct map_data_header	header;
+
+		if (fread (&header, sizeof header, 1, file) <= 0) {
+			Error ("cannot read from map file '%s'", entry->filename);
+			return 0;
+		}
+		map.width = header.width;
+		map.height = header.height;
+		map.tile_width = header.tile_width;
+		map.tile_height = header.tile_height;
+		map.data = malloc (map.width * map.height * sizeof *map.data);
+		if (fread (map.data, sizeof *map.data, map.width * map.height, file) <= 0) {
+			Error ("cannot read from map file '%s'", entry->filename);
+		}
+		map.filename = strdup (entry->filename);
+		if (map.data && map.filename) {
+			int		index = new_map_resource (resources);
+
+			if (index >= 0) {
+				resources->maps[index] = map;
+				result = 1;
+			} else {
+				Error ("cannot allocate memory for map");
+			}
+		} else {
+			Error ("cannot allocate memory for map");
+			free (map.data);
+			free (map.filename);
+		}
+		fclose (file);
+	} else {
+		Error ("cannot open map file '%s'", entry->filename);
+	}
+	return (result);
+}
+
 int		init_resources (struct resources *resources) {
 	FILE	*schema_handle;
 	int		schema_size;
@@ -73,8 +116,16 @@ int		init_resources (struct resources *resources) {
 					if (create_tileset (resources, &entry)) {
 						Info ("tileset %s loaded", entry.filename);
 					} else {
-						Error ("cannot create tileset %s", entry.filename);
+						Error ("cannot load tileset %s", entry.filename);
 					}
+				} else if (entry.type == Schema_Type_map) {
+					if (create_map (resources, &entry)) {
+						Info ("map %s loaded", entry.filename);
+					} else {
+						Error ("cannot load map %s", entry.filename);
+					}
+				} else {
+					Error ("unsupported schema type");
 				}
 				offset += ret;
 				count += 1;
@@ -173,6 +224,31 @@ void	store_resources (struct resources *res) {
 						grid->tile_width, grid->tile_height,
 						grid->x, grid->y,
 						grid->tile_padding_x, grid->tile_padding_y);
+			}
+		}
+		for (int map_index = 0; map_index < res->maps_count; map_index += 1) {
+			struct map	*map = &res->maps[map_index];
+			FILE		*map_file;
+
+			fprintf (schema_handle, "map:%s\n", map->filename);
+			map_file = fopen (map->filename, "wb");
+			if (map_file) {
+				struct map_data_header	header = {
+					.width = map->width,
+					.height = map->height,
+					.tile_width = map->tile_width,
+					.tile_height = map->tile_height,
+				};
+
+				if (fwrite (&header, sizeof header, 1, map_file) <= 0) {
+					Error ("cannot write to map file '%s'", map->filename);
+				}
+				if (fwrite (map->data, sizeof *map->data, map->width * map->height, map_file) <= 0) {
+					Error ("cannot write to map file '%s'", map->filename);
+				}
+				fclose (map_file);
+			} else {
+				Error ("cannot open map file '%s'", map->filename);
 			}
 		}
 	}
