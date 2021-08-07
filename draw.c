@@ -7,6 +7,30 @@
 
 #include "defs.h"
 
+void	memset_unsigned (unsigned *restrict dest, unsigned value, int count) {
+	while (count > 0) {
+		*dest++ = value;
+		count -= 1;
+	}
+}
+
+void	draw_colorbox (struct framebuffer *buffer, int xx, int yy, int width, int height, unsigned color) {
+	const int	start_x = Max (xx, 0);
+	const int	end_x = Min (width + xx, buffer->width);
+	const int	start_y = Max (yy, 0);
+	const int	end_y = Min (height + yy, buffer->height);
+	const int	frame_width = end_x - start_x;
+
+	Assert (buffer->channels == 4);
+	if (frame_width > 0) {
+		for (int y = start_y; y < end_y; y += 1) {
+			void	*dest = buffer->data + y * buffer->stride + start_x * buffer->channels;
+
+			memset_unsigned (dest, color, frame_width);
+		}
+	}
+}
+
 void	draw_texture (struct framebuffer *buffer, struct frame *frame, unsigned char *data) {
 	const int	start_x = Max (frame->x, 0);
 	const int	end_x = Min (frame->width + frame->x, buffer->width);

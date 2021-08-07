@@ -40,7 +40,7 @@ sapp_desc	sokol_main(int argc, char* argv[]) {
 		.frame_userdata_cb = (void (*)(void *)) calculate_frame,
 		.cleanup_userdata_cb = (void (*)(void *)) cleanup,
 		.event_userdata_cb = (void (*)(const struct sapp_event *, void *)) handle_event,
-		.window_title = "Super Mario Bros.",
+		.window_title = Window_Title,
 	};
 }
 
@@ -54,9 +54,12 @@ void	init_state (struct state *state) {
 					.sample_count = sapp_sample_count()
 				});
 
+	sapp_set_window_title (Window_Title " (map editor)");
 	init_terminal (&state->terminal);
 	init_editor (&state->editor, &state->resources);
-	init_editor_painter (&state->editor_painter, &state->editor, &state->terminal);
+	init_editor_painter (&state->editor_painter, &state->editor, &state->terminal, &state->camera);
+	init_entity_world (&state->world);
+	state->entity_painter.world = &state->world;
 
 	state->framebuffer.width = sapp_width() / Window_Scale;
 	state->framebuffer.height = sapp_height() / Window_Scale;
@@ -90,8 +93,23 @@ void	calculate_frame (struct state *state) {
 
 	run_editor (&state->editor, &state->editor_input);
 	run_editor_painter (&state->framebuffer, &state->editor_painter);
+	run_entity_world (&state->world, &state->entity_input);
+	state->entity_painter.width = 1024;
+	state->entity_painter.height = 64;
+	state->entity_painter.focus_x = 0;
+	state->entity_painter.focus_y = 0;
+	run_entity_painter (&state->framebuffer, &state->entity_painter);
+
+	if (state->editor_input.view) {
+		if (state->editor.view == Editor_View_map) {
+			sapp_set_window_title (Window_Title " (map editor)");
+		} else if (state->editor.view == Editor_View_tileset) {
+			sapp_set_window_title (Window_Title " (tileset editor)");
+		}
+	}
 
 	memset (&state->editor_input, 0, sizeof state->editor_input);
+	memset (&state->entity_input, 0, sizeof state->entity_input);
 
 	if (1) {
 		draw_framebuffer (&state->screenbuffer, &state->framebuffer);
@@ -158,8 +176,10 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 				case SAPP_KEYCODE_TAB:
 					state->editor_input.view = 1;
 				break ;
+				case SAPP_KEYCODE_Z:
 				case SAPP_KEYCODE_ENTER:
 					state->editor_input.apply = 1;
+					state->editor_input.apply_on = 1;
 				break ;
 				case SAPP_KEYCODE_ESCAPE:
 					state->editor_input.cancel = 1;
@@ -169,12 +189,15 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 				break ;
 				case SAPP_KEYCODE_LEFT:
 					state->editor_input.left = 1;
+					state->entity_input.left = 1;
 				break ;
 				case SAPP_KEYCODE_RIGHT:
 					state->editor_input.right = 1;
+					state->entity_input.right = 1;
 				break ;
 				case SAPP_KEYCODE_UP:
 					state->editor_input.up = 1;
+					state->entity_input.up = 1;
 				break ;
 				case SAPP_KEYCODE_DOWN:
 					state->editor_input.down = 1;
@@ -201,6 +224,16 @@ void	handle_event (const struct sapp_event *event, struct state *state) {
 				case SAPP_KEYCODE_LEFT_ALT:
 				case SAPP_KEYCODE_RIGHT_ALT:
 					state->editor_input.alt_off = 1;
+				break ;
+				case SAPP_KEYCODE_Z:
+				case SAPP_KEYCODE_ENTER:
+					state->editor_input.apply_off = 1;
+				break ;
+				case SAPP_KEYCODE_LEFT:
+					state->entity_input.left_off = 1;
+				break ;
+				case SAPP_KEYCODE_RIGHT:
+					state->entity_input.right_off = 1;
 				break ;
 				default: break ;
 			}

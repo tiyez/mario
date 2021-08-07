@@ -135,7 +135,21 @@ static void	run_editor_tileset_grid_choice (struct editor *editor, struct editor
 		if (choice->select < 0) {
 			choice->select = 0;
 		}
-		if (editor->is_alt && (choice->select >= 0)) {
+		if (editor->is_control) {
+			if (input->apply) {
+				if (tileset->grids_count < Array_Count (tileset->grids)) {
+					choice->select = tileset->grids_count;
+					tileset->grids_count += 1;
+					memset (&tileset->grids[choice->select], 0, sizeof tileset->grids[choice->select]);
+					tileset->grids[choice->select].width = 1;
+					tileset->grids[choice->select].height = 1;
+					tileset->grids[choice->select].tile_width = 16;
+					tileset->grids[choice->select].tile_height = 16;
+				} else {
+					Error ("Not enough memory for grids (max: %d)", Array_Count (tileset->grids));
+				}
+			}
+		} else if (editor->is_alt && (choice->select >= 0)) {
 			struct tilegrid	*grid = &tileset->grids[choice->select];
 
 			if (input->left && grid->x > 0) {
@@ -214,22 +228,41 @@ static void	run_editor_tileset_tile_choice (struct editor *editor, struct editor
 				editor->current_grid = -1;
 			}
 		} else if (editor->is_alt) {
-			if (input->left && grid->tile_width > 1) {
-				grid->tile_width -= 1;
-			}
-			grid->tile_width += 1;
-			if (input->right && grid->x + get_grid_pixel_width (grid) < tileset->width) {
+			if (editor->is_shift) {
+				if (input->left && grid->tile_padding_x > 0) {
+					grid->tile_padding_x -= 1;
+				}
+				grid->tile_padding_x += 1;
+				if (input->right && grid->x + get_grid_pixel_width (grid) < tileset->width) {
+					grid->tile_padding_x += 1;
+				}
+				grid->tile_padding_x -= 1;
+				if (input->up && grid->tile_padding_y > 0) {
+					grid->tile_padding_y -= 1;
+				}
+				grid->tile_padding_y += 1;
+				if (input->down && grid->y + get_grid_pixel_height (grid) < tileset->height) {
+					grid->tile_padding_y += 1;
+				}
+				grid->tile_padding_y -= 1;
+			} else {
+				if (input->left && grid->tile_width > 1) {
+					grid->tile_width -= 1;
+				}
 				grid->tile_width += 1;
-			}
-			grid->tile_width -= 1;
-			if (input->up && grid->tile_height > 1) {
+				if (input->right && grid->x + get_grid_pixel_width (grid) < tileset->width) {
+					grid->tile_width += 1;
+				}
+				grid->tile_width -= 1;
+				if (input->up && grid->tile_height > 1) {
+					grid->tile_height -= 1;
+				}
+				grid->tile_height += 1;
+				if (input->down && grid->y + get_grid_pixel_height (grid) < tileset->height) {
+					grid->tile_height += 1;
+				}
 				grid->tile_height -= 1;
 			}
-			grid->tile_height += 1;
-			if (input->down && grid->y + get_grid_pixel_height (grid) < tileset->height) {
-				grid->tile_height += 1;
-			}
-			grid->tile_height -= 1;
 		} else if (editor->is_control) {
 			int		sx = editor->tile_choice.select % grid->width;
 			int		sy = editor->tile_choice.select / grid->width;
@@ -282,74 +315,53 @@ static void	run_editor_tileset_view (struct editor *editor, struct editor_input 
 	}
 }
 
-static unsigned	make_map_tile (int type, int tileset, int grid, int tile) {
+static unsigned	make_map_tile (int type, int tileset, int grid, int tile_x, int tile_y) {
 	unsigned	result;
 
 	Assert ((type & 0xFFFFFF00) == 0);
 	Assert ((tileset & 0xFFFFFF00) == 0);
 	Assert ((grid & 0xFFFFFFF0) == 0);
-	Assert ((tile & 0xFFFFF000) == 0);
+	Assert ((tile_x & 0xFFFFFF40) == 0);
+	Assert ((tile_y & 0xFFFFFF40) == 0);
 	result = (unsigned) type << 24;
 	result += tileset << 16;
 	result += grid << 12;
-	result += tile;
+	result += tile_y << 6;
+	result += tile_x;
 	return (result);
 }
 
 static void	blit_map (unsigned *dest, int dwidth, int dheight, unsigned *src, int swidth, int sheight, int sx, int sy) {
+	const int	start_x = Max (sx, 0);
+	const int	end_x = Min (swidth + sx, dwidth);
 	const int	start_y = Max (sy, 0);
-	const int	start_x = Min (sx, 0);
-	const int	start_ix = start_x - sx;
-	const int	width = start_x + (swidth - start_ix) > dwidth ? dwidth - start_x : swidth - start_ix;
+	const int	end_y = Min (sheight + sy, dheight);
+	const int	width = end_x - start_x;
 
-	if (width > 0 && start_ix < swidth) {
-		for (int y = start_y, iy = start_y - sy; y < dheight && iy < sheight; y += 1, iy += 1) {
+	if (width > 0) {
+		for (int y = start_y; y < end_y; y += 1) {
 			unsigned	*dest_data = dest + y * dwidth + start_x;
-			unsigned	*src_data = src + iy * swidth + start_ix;
+			unsigned	*src_data = src + (y - sy) * swidth + (start_x - sx);
 
 			memcpy (dest_data, src_data, width * sizeof *src);
 		}
 	}
 }
 
-static void	expand_map (struct map *map, int x_vector, int y_vector) {
+static void	expand_map (struct map *map, int x_vector, int y_vector, int direction) {
+	const int	dir = direction >= 0 ? 1 : -1;
 	const int	x_count = Absolute (x_vector);
 	const int	x_dir = x_count == 0 ? 0 : x_vector / x_count;
-	const int	x_blit = x_dir < 0 ? x_count : 0;
+	const int	x_blit = dir * x_dir < 0 ? dir * x_count : 0;
 	const int	y_count = Absolute (y_vector);
 	const int	y_dir = y_count == 0 ? 0 : y_vector / y_count;
-	const int	y_blit = y_dir < 0 ? y_count : 0;
-	const int	new_width = map->width + x_count;
-	const int	new_height = map->height + y_count;
+	const int	y_blit = dir * y_dir < 0 ? dir * y_count : 0;
+	const int	new_width = map->width + dir * x_count;
+	const int	new_height = map->height + dir * y_count;
 	const int	new_size = new_height * new_width;
 	unsigned	*new_data;
 
-	new_data = malloc (new_size * sizeof *new_data);
-	if (new_data) {
-		memset (new_data, 0, new_size * sizeof *new_data);
-		blit_map (new_data, new_width, new_height, map->data, map->width, map->height, x_blit, y_blit);
-		free (map->data);
-		map->data = new_data;
-		map->width = new_width;
-		map->height = new_height;
-	} else {
-		Error ("cannot allocate memory for map when expanding it");
-	}
-}
-
-static void	shrink_map (struct map *map, int x_vector, int y_vector) {
-	const int	x_count = Absolute (x_vector);
-	const int	x_dir = x_count == 0 ? 0 : x_vector / x_count;
-	const int	x_blit = x_dir > 0 ? x_count : 0;
-	const int	y_count = Absolute (y_vector);
-	const int	y_dir = y_count == 0 ? 0 : y_vector / y_count;
-	const int	y_blit = y_dir > 0 ? y_count : 0;
-	const int	new_width = map->width - x_count;
-	const int	new_height = map->height - y_count;
-	const int	new_size = new_height * new_width;
-	unsigned	*new_data;
-
-	if (new_width > 0 && new_height > 0) {
+	if (new_size > 0) {
 		new_data = malloc (new_size * sizeof *new_data);
 		if (new_data) {
 			memset (new_data, 0, new_size * sizeof *new_data);
@@ -362,39 +374,32 @@ static void	shrink_map (struct map *map, int x_vector, int y_vector) {
 			Error ("cannot allocate memory for map when expanding it");
 		}
 	} else {
-		Trace ("attempt to shrink map to zero width/height");
+		Trace ("something wrong with expander (new_size: %d)", new_size);
 	}
 }
 
-static void	run_editor_map_expander (struct map *map, struct editor_input *input) {
+static void	run_editor_map_expander (struct editor *editor, struct map *map, struct editor_input *input, int direction) {
+	int		sx = editor->map_tile_choice.select % map->width;
+	int		sy = editor->map_tile_choice.select / map->width;
+
 	if (input->left) {
-		expand_map (map, -1, 0);
+		expand_map (map, -1, 0, direction);
 	}
 	if (input->right) {
-		expand_map (map, 1, 0);
+		expand_map (map, 1, 0, direction);
 	}
 	if (input->up) {
-		expand_map (map, 0, -1);
+		expand_map (map, 0, -1, direction);
 	}
 	if (input->down) {
-		expand_map (map, 0, 1);
+		expand_map (map, 0, 1, direction);
 	}
+	sx = Min (sx, map->width - 1);
+	sy = Min (sy, map->height - 1);
+	editor->map_tile_choice.select = sy * map->width + sx;
 }
 
-static void	run_editor_map_shrinker (struct map *map, struct editor_input *input) {
-	if (input->left) {
-		shrink_map (map, -1, 0);
-	}
-	if (input->right) {
-		shrink_map (map, 1, 0);
-	}
-	if (input->up) {
-		shrink_map (map, 0, -1);
-	}
-	if (input->down) {
-		shrink_map (map, 0, 1);
-	}
-}
+void	extract_map_values (unsigned value, int *type, int *tileset, int *grid, int *tile_x, int *tile_y);
 
 static void	run_editor_map_edit (struct editor *editor, struct editor_input *input) {
 	struct map	*map = &editor->resources->maps[editor->current_map];
@@ -402,9 +407,9 @@ static void	run_editor_map_edit (struct editor *editor, struct editor_input *inp
 	if (map->width > 0 && map->height > 0) {
 		if (editor->is_control) {
 			if (editor->is_shift) {
-				run_editor_map_shrinker (map, input);
+				run_editor_map_expander (editor, map, input, -1);
 			} else {
-				run_editor_map_expander (map, input);
+				run_editor_map_expander (editor, map, input, 1);
 			}
 			if (input->erase) {
 				memset (map->data, 0, map->width * map->height * sizeof *map->data);
@@ -413,14 +418,43 @@ static void	run_editor_map_edit (struct editor *editor, struct editor_input *inp
 			if (editor->map_tile_choice.select < 0) {
 				editor->map_tile_choice.select = 0;
 			}
+			if (editor->is_shift && editor->current_tileset >= 0 && editor->current_grid >= 0 && editor->current_tile >= 0) {
+				struct tileset	*tileset = &editor->resources->tilesets[editor->current_tileset];
+				struct tilegrid	*grid = &tileset->grids[editor->current_grid];
+
+				run_editor_2d_choicer (&editor->tile_choice, grid->width, grid->height, input);
+				editor->current_tile = editor->tile_choice.select;
+			}
 			run_editor_2d_choicer (&editor->map_tile_choice, map->width, map->height, input);
-			if (input->apply || input->erase) {
+			if (editor->is_apply || input->erase) {
 				unsigned	*tile = map->data + editor->map_tile_choice.select;
 
-				if (input->apply && editor->current_tileset >= 0 && editor->current_grid >= 0 && editor->current_tile >= 0) {
-					*tile = make_map_tile (1, editor->current_tileset, editor->current_grid, editor->current_tile);
+				if (editor->is_alt) {
+					int type, tileset_index, grid_index, tile_x, tile_y;
+
+					extract_map_values (*tile, &type, &tileset_index, &grid_index, &tile_x, &tile_y);
+					if (type > 0) {
+						struct tileset	*tileset = &editor->resources->tilesets[tileset_index];
+						struct tilegrid	*grid = &tileset->grids[grid_index];
+
+						editor->current_tileset = tileset_index;
+						editor->current_grid = grid_index;
+						editor->current_tile = tile_y * grid->width + tile_x;
+						editor->tile_choice.select = editor->current_tile;
+					}
 				} else {
-					*tile = 0;
+					if (editor->is_apply && editor->current_tileset >= 0 && editor->current_grid >= 0 && editor->current_tile >= 0) {
+						struct tileset	*tileset = &editor->resources->tilesets[editor->current_tileset];
+						struct tilegrid	*grid = &tileset->grids[editor->current_grid];
+
+						if (grid->tile_width == map->tile_width && grid->tile_height == map->tile_height) {
+							*tile = make_map_tile (1, editor->current_tileset, editor->current_grid, editor->current_tile % grid->width, editor->current_tile / grid->width);
+						} else {
+							Trace ("grid's tile dimensions does not match with map's");
+						}
+					} else if (input->erase) {
+						*tile = 0;
+					}
 				}
 			}
 			if (input->cancel) {
@@ -469,6 +503,12 @@ void	run_editor (struct editor *editor, struct editor_input *input) {
 	}
 	if (input->alt_off) {
 		editor->is_alt = 0;
+	}
+	if (input->apply_on) {
+		editor->is_apply = 1;
+	}
+	if (input->apply_off) {
+		editor->is_apply = 0;
 	}
 	if (input->save) {
 		store_resources (editor->resources);

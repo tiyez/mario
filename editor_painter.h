@@ -8,12 +8,10 @@
 struct editor_painter {
 	struct editor	*editor;
 	struct terminal	*terminal;
-
-	float	focus_x;
-	float	focus_y;
+	struct camera	*camera;
 };
 
-void	init_editor_painter (struct editor_painter *, struct editor *, struct terminal *);
+void	init_editor_painter (struct editor_painter *, struct editor *, struct terminal *, struct camera *);
 void	run_editor_painter (struct framebuffer *, struct editor_painter *);
 
 #endif /* Editor_Painter_H */

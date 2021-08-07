@@ -23,6 +23,8 @@ struct editor_input {
 	int		shift_off;
 	int		alt_on;
 	int		alt_off;
+	int		apply_on;
+	int		apply_off;
 };
 
 enum editor_view {
@@ -47,6 +49,7 @@ struct editor {
 	int					is_control;
 	int					is_shift;
 	int					is_alt;
+	int					is_apply;
 
 	struct menu			menu;
 

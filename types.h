@@ -93,4 +93,12 @@ Types_Inline void	invalidate_choice (struct choice *choice) {
 	choice->select = -1;
 }
 
+struct camera {
+	float	px;
+	float	py;
+	int		width;
+	int		height;
+};
+
+
 #endif /* Types_H */

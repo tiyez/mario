@@ -1,16 +1,21 @@
 tileset:assets/4b911c7d968feeaa993d24c93ddb821e.png
 @ 10-10 16x16 8,5 1,1
-@ 10-10 3x3 0,0 0,0
+@ 5-5 16x16 0,0 0,0
 tileset:assets/52571.png
-@ 10-10 16x16 1,12 1,1
+@ 16-8 16x16 1,12 1,1
+@ 16-8 16x16 275,12 1,1
+@ 16-8 16x16 549,12 1,1
+@ 16-8 16x16 1,185 1,1
+@ 6-4 16x16 549,185 1,1
 tileset:assets/nes_item_and_brick.png
 @ 10-10 16x16 0,0 0,0
 tileset:assets/nes_items_objects_and_npcs.png
-@ 10-10 16x16 0,0 0,0
+@ 35-20 16x16 0,0 0,0
 tileset:assets/SMB1remaketileset_zps6e48c95d.png
 @ 10-10 16x16 0,0 0,0
 tileset:assets/smb_tiles.png
 @ 10-10 16x16 0,0 0,0
 tileset:assets/SuperMarioBrosMap1-1.png
-@ 10-10 16x16 0,0 0,0
+@ 223-26 16x16 0,0 0,0
 map:assets/hello.map
+map:assets/level01.map

@@ -15,7 +15,9 @@ menu.c\
 types.c\
 editor_painter.c\
 menu_painter.c\
-terminal.c
+terminal.c\
+entity.c\
+entity_painter.c
 MSRC = sokol_unit.m
 ALL_SRC= $(MSRC) $(SRC)
 
